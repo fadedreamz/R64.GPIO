@@ -13,6 +13,11 @@ class PINLAYOUT(Enum):
     BCM = 'BCM'
 
 
+ROCK64 = 'ROCK64'
+BOARD = 'BOARD'
+BCM = 'BCM'
+
+
 IN = "in"
 OUT = "out"
 
