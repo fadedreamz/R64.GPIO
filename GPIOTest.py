@@ -8,10 +8,10 @@ def test_gpio_output():
     GPIO.setmode(GPIO.PINLAYOUT.ROCK64)
     GPIO.setwarnings(state=True)
     GPIO.setup("GPIO1_A3", GPIO.OUT, initial=GPIO.HIGH)
-    GPIO.setup("GPIO1_A6", GPIO.IN, initial=GPIO.HIGH)
-    GPIO.add_event_detect("GPIO1_A6", GPIO.RISING, start_blink, 500)
+    GPIO.setup("GPIO3_A4", GPIO.IN, initial=GPIO.HIGH)
+    GPIO.add_event_detect("GPIO3_A4", GPIO.FALLING, start_blink, 500)
     input()
-    GPIO.remove_event_detect("GPIO1_A6")
+    GPIO.remove_event_detect("GPIO3_A4")
     #global keep_blinking
     #keep_blinking = False
     input()

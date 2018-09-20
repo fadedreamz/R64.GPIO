@@ -268,7 +268,7 @@ class GPIORock64(GPIOBase):
             for fileno, event in events:
                 if event & select.EPOLLPRI:
                     value = self.get_value(channel)
-                    print('OLD : {} NEW : {}'.format(initial, value))
+                    #print('OLD : {} NEW : {}'.format(initial, value))
                     cur_epoc = int(round(time.time() * 1000))
                     if cur_epoc - initial_epoc >= ctx.bouncetime and initial != value:
                         initial_epoc = cur_epoc
