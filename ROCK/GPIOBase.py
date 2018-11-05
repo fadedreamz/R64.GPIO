@@ -7,12 +7,6 @@ import select
 from threading import Thread
 import time
 
-class PINLAYOUT(Enum):
-    ROCK64 = 'ROCK64'
-    BOARD = 'BOARD'
-    BCM = 'BCM'
-
-
 ROCK64 = 'ROCK64'
 BOARD = 'BOARD'
 BCM = 'BCM'
@@ -107,9 +101,9 @@ class GPIORock64(GPIOBase):
 
     def channel_to_pin(self, pin):
         """Converts the given channel to physical pin to be exported via gpio sysfs"""
-        if self.mode == PINLAYOUT.BOARD:
+        if self.mode == BOARD:
             return self.board_to_pin(pin)
-        elif self.mode == PINLAYOUT.ROCK64:
+        elif self.mode == ROCK64:
             return self.rock64_to_pin(pin)
         raise ValueError("invalid pin and/or mode")
 
@@ -144,9 +138,9 @@ class GPIORock64(GPIOBase):
 
     def setmode(self, mode):
         """Sets the mode for GPIO"""
-        if mode == PINLAYOUT.BCM:
+        if mode == BCM:
             raise NotImplementedError("BCM PINMODE not implemented")
-        if mode != PINLAYOUT.ROCK64 and mode != PINLAYOUT.BOARD:
+        if mode != ROCK64 and mode != BOARD:
             raise RuntimeError("mode not supported : {}".format(mode))
         self.mode = mode
         pass
@@ -230,11 +224,11 @@ class GPIORock64(GPIOBase):
                 self.validate_channel(c)
             return channel
         elif isinstance(channel, int):
-            if self.mode != PINLAYOUT.BOARD:
+            if self.mode != BOARD:
                 raise ValueError("invalid channel given, mode is not BOARD, but channel is integer")
             return [channel]
         elif isinstance(channel, str):
-            if self.mode != PINLAYOUT.ROCK64:
+            if self.mode != ROCK64:
                 raise ValueError("invalid channel given, mode is not ROCK64, but channel is string")
             return [channel]
         raise ValueError("invalid channel given")
