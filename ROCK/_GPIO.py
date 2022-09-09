@@ -27,7 +27,7 @@ def output(channel, value):
     return handle.output(channel, value)
 
 
-def add_event_detect(channel, edge, callback, bouncetime):
+def add_event_detect(channel, edge, callback, bouncetime = 1):
     return handle.add_event_detect(channel, edge, callback, bouncetime)
 
 

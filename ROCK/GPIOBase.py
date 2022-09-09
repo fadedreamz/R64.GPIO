@@ -93,6 +93,17 @@ class GPIORock64(GPIOBase):
                             None, "GPIO2_A3", None, None, "GPIO3_A4", "GPIO3_A5", None, "GPIO3_A6", "GPIO3_A1", None,
                             "GPIO3_A2", "GPIO3_A7", "GPIO3_A0", "GPIO3_B0", None, "GPIO2_B4", "GPIO2_A4", "GPIO2_A5", None, None,
                             None, "GPIO1_A6", "GPIO1_A0", None, "GPIO1_A1", "GPIO1_A5", "GPIO1_A2", "GPIO1_A4", None, "GPIO1_A3"]
+    # Used Pi2 Header Pinout for comparison and pin-number reference - https://cdn.sparkfun.com/assets/learn_tutorials/4/2/4/header_pinout.jpg
+    bcm_to_rock64_map = [None,                                                       # 0
+                         None, 'GPIO2_D1', 'GPIO2_D0', 'GPIO2_D4', None,             # 1-5 - No GPIO 01 on RPi - GPIO 05 not connected on R64
+                         None, 'GPIO2_B4', 'GPIO3_B0', 'GPIO3_A1', 'GPIO3_A2',       # 6-10 - GPIO 06 not connected on R64
+                         None, 'GPIO1_A6', 'GPIO1_A0', 'GPIO2_A0', 'GPIO2_A1',       # 11-15 - No GPIO 11 on RPi
+                         'GPIO1_A5', None, 'GPIO2_A3', 'GPIO1_A1', 'GPIO1_A4',       # 16-20 - GPIO 17 not connected on R64
+                         'GPIO1_A3', 'GPIO3_A4', 'GPIO3_A5', 'GPIO3_A6', 'GPIO3_A7', # 21-25
+                         'GPIO1_A2', 'GPIO0_A0']                                     # 26-27
+
+    #Note: BCM GPIO - 12, 13, 16, 19, 20, 21, amd 26 are not accesible if onboard MicroSD card reader is in use
+
 
     def __init__(self, gpio_offset=0):
         super().__init__()
@@ -101,11 +112,26 @@ class GPIORock64(GPIOBase):
 
     def channel_to_pin(self, pin):
         """Converts the given channel to physical pin to be exported via gpio sysfs"""
+        pinName = pin
         if self.mode == BOARD:
-            return self.board_to_pin(pin)
+            pinName = self.board_to_pin(pin)
+        elif self.mode == BCM:
+            pinName = self.bcm_to_pin(pin)
         elif self.mode == ROCK64:
-            return self.rock64_to_pin(pin)
-        raise ValueError("invalid pin and/or mode")
+            pinName = pin
+        else:
+            raise ValueError("invalid pin and/or mode")
+        return self.rock64_to_pin(pinName)
+
+    def bcm_to_pin(self, bcmpin):
+        """Converts the given channel (assuming bcm numbering is being used) to physical pin"""
+        if not isinstance(bcmpin, int):
+            raise ValueError("invalid bcm pin, expected int")
+        if bcmpin < 0 or bcmpin >= len(self.bcm_to_rock64_map):
+            raise ValueError("invalid bcm pin given, should be within the rage of 0 to {}".format(len(self.bcm_to_rock64_map) - 1))
+        if self.bcm_to_rock64_map[bcmpin] is None:
+            raise ValueError("invalid board pin, no possible mapping with GPIO pins")
+        return self.bcm_to_rock64_map[bcmpin]
 
     def board_to_pin(self, boardpin):
         """Converts the given channel (assuming board numbering is being used) to physical pin"""
@@ -138,9 +164,7 @@ class GPIORock64(GPIOBase):
 
     def setmode(self, mode):
         """Sets the mode for GPIO"""
-        if mode == BCM:
-            raise NotImplementedError("BCM PINMODE not implemented")
-        if mode != ROCK64 and mode != BOARD:
+        if mode not in (ROCK64, BOARD, BCM):
             raise RuntimeError("mode not supported : {}".format(mode))
         self.mode = mode
         pass
@@ -224,8 +248,8 @@ class GPIORock64(GPIOBase):
                 self.validate_channel(c)
             return channel
         elif isinstance(channel, int):
-            if self.mode != BOARD:
-                raise ValueError("invalid channel given, mode is not BOARD, but channel is integer")
+            if self.mode != BOARD and self.mode != BCM:
+                raise ValueError("invalid channel given, mode is not BOARD or BCM, but channel is integer")
             return [channel]
         elif isinstance(channel, str):
             if self.mode != ROCK64:
@@ -276,7 +300,7 @@ class GPIORock64(GPIOBase):
             file.seek(0)  # reset read cursor
         print("unregistering add_event_detect for {}".format(channel))
 
-    def add_event_detect(self, channel, edge, callback, bouncetime):
+    def add_event_detect(self, channel, edge, callback, bouncetime = 1):
         if callback is None:
             self.log_warning("no callback given, ignoring add_event_detect() request")
             return

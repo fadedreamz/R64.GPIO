@@ -13,7 +13,7 @@ Following functionalities are implemented and tested on rock64
 
 | Function  | Support  | Notes  |
 |-----------|----------|--------|
-| GPIO.setmode()  |  Partial (BOARD and ROCK64, BCM not supported atm)  |  BCM can be emulated up to a certain stage  |
+| GPIO.setmode()  |  Yes  |  BCM does not check for pins that are disabled when MicroSD is in use  |
 | GPIO.setwarnings() | YES | |
 | GPIO.setup() | Partial (Pull UP/DOWN ignored) | Default Pull UP/DOWN used |
 | GPIO.output() | YES | |
